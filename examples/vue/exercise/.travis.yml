@@ -1,0 +1,17 @@
+sudo: false
+language: node_js
+cache:
+  directories:
+    - node_modules
+notifications:
+  email: true
+node_js:
+  - '8'
+before_script:
+  - npm prune
+script:
+  - npm run cy:verify
+  - travis_retry npm run test:record
+branches:
+  except:
+    - "/^v\\d+\\.\\d+\\.\\d+$/"

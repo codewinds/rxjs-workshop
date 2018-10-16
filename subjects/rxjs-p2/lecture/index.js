@@ -1,8 +1,15 @@
 import '../util/polyfill'; // first import polyfills
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Observable, Subject, combineLatest, from, interval, merge, of, throwError, timer } from 'rxjs';
-import { catchError, debounceTime, take, throttleTime, timestamp, filter, map, mergeMap, retryWhen, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subject, combineLatest, from, interval, merge, of,
+  throwError, timer, NEVER, EMPTY, range, pairs, iif, defer,
+  BehaviorSubject, ReplaySubject, bindCallback, bindNodeCallback,
+  fromEvent } from 'rxjs';
+import { catchError, debounceTime, take, throttleTime, timestamp, filter,
+  map, mergeMap, retryWhen, switchMap, tap, publish, share, reduce, scan,
+  min, max, every, sequenceEqual, toArray, startWith, defaultIfEmpty,
+  shareReplay, count
+} from 'rxjs/operators';
 import { ajax } from 'rxjs/ajax';
 import { webSocket } from 'rxjs/webSocket';
 
@@ -10,340 +17,330 @@ import { webSocket } from 'rxjs/webSocket';
 
 // locate a div in our html where we want to render
 const appContainerDiv = document.querySelector('#appContainer');
+const topic = jsx => { ReactDOM.render(jsx, appContainerDiv) };
 
-/* */
-ReactDOM.render(
-  <div>
-  <ul>
-  <li>Event Composition</li>
-  <li>Data over time</li>
-  <li>ReactiveX/RxJS v6</li>
-  <ul>
-  <li>Better performance</li>
-  <li>Modularity</li>
-  <li>Debuggable call stacks</li>
-  <li>Reduced API size</li>
-  </ul>
-  </ul>
-  </div>,
-  appContainerDiv
-);
+// use for subscriptions to output results
+const createOutputObj = (topic) => {
+  return {
+    next: x => console.log(`${topic}-next`, x),
+    error: err => console.log(`${topic}-error`, err),
+    complete: () => console.log(`${topic}-complete`)
+  };
+}
 
+// topic('Marble Notation');
+/* TODO */
 
-/* Observable.create */
+// topic('RxJS Versions');
+/* TODO */
 
-// const ob$ = Observable.create(obs => {
-//   obs.next('foo');
-//   obs.next('bar');
-//   obs.next('baz');
-//   obs.complete();
-// });
+/* Other ways to create observables */
+
+// topic('Other ways to create Observables');
+
+// NEVER.subscribe(createOutputObj('NEVER')); /* no output */
+// EMPTY.subscribe(createOutputObj('EMPTY'));
 //
-// ob$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
+// const initialDelay = 2000; /* ms */
+// timer(initialDelay)
+//   .subscribe(createOutputObj('timer-once'));
 //
-// const ob2$ = Observable.create(obs => {
-//   obs.next('foo');
-//   obs.error(new Error('my error'));
-// });
-//
-// ob2$.subscribe({
-//   next: x => console.log('ob2$ next', x),
-//   error: err => console.log('ob2$ error', err),
-//   complete: () => console.log('ob2$ complete')
-// });
+// const period = 1000; /* ms */
+// timer(initialDelay, period)
+//   .subscribe(createOutputObj('timer-repeats'));
 
+// interval(1000) /* ms */
+//   .subscribe(createOutputObj('interval'));
 
-/* Observable of */
+// range(0, 10)
+//   .subscribe(createOutputObj('range'));
 
-// const ob$ = of('foo', 'bar');
-//
-// ob$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
+// const obj = {
+//   a: 'one',
+//   b: 'two',
+//   c: 'three'
+// };
+// pairs(obj)
+//   .subscribe(createOutputObj('pairs'));
 
+// const fn = () => true;
+// const a$ = of(1, 2, 3);
+// const b$ = of('d', 'e', 'f');
+// iif(fn, a$, b$)
+//   .subscribe(createOutputObj('iif'));
 
-/* Observable throwError */
-
-// const ob$ = throwError(new Error('my error'));
-//
-// ob$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-
-/* Observable from(arr | promise | obs) */
-
-// const prom = new Promise((resolve, reject) => {
-//   resolve('foo');
-//   /* or reject(new Error('my error')) */
-// });
-//
-// const ob$ = from(prom);
-//
-// ob$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-
-
-/* Observable interval */
-
-// const int$ = interval(1000);
-//
-// int$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-/* Observable timer - single event */
-
-/* delay in ms or absolute Date */
-// const int$ = timer(1000);
-//
-// int$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-/* Observable timer - multiple event */
-
-/* delay and delayBetween in ms
-   repeats every delayBetween milliseconds */
-// const delay = 1000;  /* ms */
-// const delayBetween = 500;  /* ms */
-// const int$ = timer(delay, delayBetween);
-//
-// int$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-
-/* timestamp */
-
-// const int$ = interval(1000)
+/* startWith, defaultIfEmpty operators */
+// topic('startWith, defaultIfEmpty operators');
+// EMPTY
 //   .pipe(
-//     timestamp()
-//   );
-//
-// int$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-
-/* take(N) */
-
-// const int$ = interval(1000)
-//   .pipe(
-//     take(5)
-//   );
-//
-// int$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-/* debounceTime */
-
-// const int$ = interval(100)
-//   .pipe(
-//     take(5),
-//     debounceTime(200)
-//   );
-//
-// int$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-/* throttleTime */
-
-// const int$ = interval(100)
-//   .pipe(
-//     take(10),
-//     throttleTime(200)
-//   );
-//
-// int$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-
-/* filter, map */
-
-// const int$ = interval(1000)
-//   .pipe(
-//     take(5),
-//     filter(x => x % 2),
-//     map(x => `${x} banana`)
-//   );
-//
-// int$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-
-/* Observable merge, throttleTime */
-
-// const ob$ = merge(
-//   interval(1000)
-//     .pipe(
-//       map(x => `${x}s*****`)
-//     ),
-//   interval(100)
-//     .pipe(
-//       throttleTime(500)
-//     )
-// );
-//
-// ob$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-
-/* Observable combineLatest */
-
-// const a$ = interval(1000)
-//   .pipe(
-//     map(x => `${x}s`)
-//   );
-//
-// const b$ = interval(200);
-//
-// const ob$ = combineLatest(
-//   a$,
-//   b$,
-//   (a, b) => ({
-//     a: a,
-//     b: b
-//   })
-// );
-//
-// ob$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-
-/* catchError */
-
-// const ob$ = throwError(new Error('my error'))
-//   .pipe(
-//     catchError(err => of({ type: 'UNCAUGHT',
-//       payload: err,
-//       error: true }))
-//   );
-//
-// ob$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-
-
-/* Observable.ajax */
-
-// const ob$ = ajax.getJSON('/fake-api.json')
-//   .pipe(
-//     map(payload => payload.items) /* use items prop */
-//   );
-//
-// ob$.subscribe({
-//   next: x => console.log('next', JSON.stringify(x, null, 2)),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
-// });
-
-
-/* mergeMap */
-
-// const ob$ = Observable.create(obs => {
-//   obs.next('redux');
-//   obs.next('rxjs');
-//   obs.complete();
-// });
-//
-// ob$
-//   .pipe(
-//     mergeMap(x =>
-//       ajax({
-//         url: `https:npmsearch.com/query?q=${x}&fields=name,description`,
-//         crossDomain: true,
-//         responseType: 'json'
-//       })
-//         .pipe(
-//           map(ret => ret.response.results)  /* use results prop of payload */
-//         )
-//     )
+//     startWith('hello')
 //   )
-//   .subscribe({
-//     next: x => console.log('next', JSON.stringify(x, null, 2)),
-//     error: err => console.log('error', err),
-//     complete: () => console.log('complete')
-//   });
-
-
-
-/* Subject */
-
-// const sub$ = new Subject();
-// sub$.next(10);
+//   .subscribe(createOutputObj('startWith-empty'));
 //
-// sub$.subscribe({
-//   next: x => console.log('next', x),
-//   error: err => console.log('error', err),
-//   complete: () => console.log('complete')
+// of(1, 2, 3)
+//   .pipe(
+//     startWith('hello')
+//   )
+//   .subscribe(createOutputObj('startWith-123'));
+//
+// EMPTY
+//   .pipe(
+//     defaultIfEmpty('I defaulted')
+//   )
+//   .subscribe(createOutputObj('defaultIfEmpty-empty'));
+//
+// of(1, 2, 3)
+//   .pipe(
+//     defaultIfEmpty('I defaulted')
+//   )
+//   .subscribe(createOutputObj('defaultIfEmpty-123'));
+
+// topic('defer');
+// const ob$ = defer(() => {
+//   const rand = Math.random() * 100;
+//   return of(rand, rand + 1, rand + 2);
 // });
 //
+// ob$.subscribe(createOutputObj('defer-first'));
+// ob$.subscribe(createOutputObj('defer-second'));
+
+// topic('Subject');
+// const sub1$ = new Subject();
+// sub1$.subscribe(createOutputObj('subject'));
+// sub1$.next(1);
+// sub1$.next(2);
+// sub1$.next(3);
+// sub1$.complete();
+//
+// // sub1$.error(new Error('my error'));
+//
+// sub1$.subscribe(createOutputObj('subject2'));
+
+
+// topic('Subject-many subscribers');
+// const sub1$ = new Subject();
+// sub1$.subscribe(createOutputObj('subject1'));
+// sub1$.subscribe(createOutputObj('subject2'));
+// sub1$.next(1);
+// sub1$.next(2);
+// sub1$.next(3);
+// sub1$.complete();
+
+// topic('BehaviorSubject');
+// const sub$ = new BehaviorSubject(10);
+// sub$.subscribe(createOutputObj('BehaviorSubject-first-sub'));
 // sub$.next(20);
 // sub$.next(30);
+// sub$.subscribe(createOutputObj('BehaviorSubject-second-sub'));
+// sub$.next(40)
 // sub$.complete();
 
+// topic('ReplaySubject');
+// const sub$ = new ReplaySubject(2);
+// sub$.next(10);
+// sub$.next(20);
+// sub$.next(30);
+// sub$.subscribe(createOutputObj('ReplaySubject-first'));
+// sub$.next(40);
+// sub$.subscribe(createOutputObj('ReplaySubject-second'));
+// sub$.next(50);
+// sub$.complete();
 
+// topic('ReplaySubject with expire time');
+// const expireAfter = 100; /* ms */
+// const sub$ = new ReplaySubject(2, expireAfter);
+// sub$.next(10);
+// sub$.next(20);
+// sub$.next(30);
+// sub$.subscribe(createOutputObj('ReplaySubject-first'));
+// setTimeout(() => {
+//   sub$.next(40);
+//   sub$.subscribe(createOutputObj('ReplaySubject-second'));
+//   sub$.next(50);
+//   sub$.complete();
+// }, 1000);
 
-/* websocket simple  */
-// import './examples/rxjs-simple-ws';
+// topic('cold observable');
+// const ob$ = Observable.create(obs => {
+//   console.log('in create', Date.now());
+//   obs.next(10);
+//   obs.next(20);
+//   obs.next(30);
+//   obs.complete();
+// });
+// ob$.subscribe(createOutputObj('cold'));
+// ob$.subscribe(createOutputObj('cold2'));
 
-/* reconnecting websocket */
-// import './examples/rxjs-recon-ws';
+// topic('hot observable');
+// const sub$ = new Subject();
+// sub$.subscribe(createOutputObj('hot'));
+// sub$.subscribe(createOutputObj('hot2'));
+// sub$.next(10);
+// sub$.next(20);
+// sub$.subscribe(createOutputObj('hot3'));
+// sub$.complete();
+// sub$.subscribe(createOutputObj('hot4'));
 
+// topic('cold w/publish = hot');
+// const ob$ = Observable.create(obs => {
+//   console.log('in create', Date.now());
+//   obs.next(10);
+//   obs.next(20);
+//   obs.next(30);
+//   obs.complete();
+// })
+//   .pipe(
+//     publish()
+//   );
+// ob$.subscribe(createOutputObj('hot'));
+// ob$.subscribe(createOutputObj('hot2'));
+// ob$.connect();
 
-/* redux-observable http://redux-observable.js.org/ */
-// import './examples/redux-observable';
+// topic('cold w/share = hot');
+// const ob$ = Observable.create(obs => {
+//   console.log('in create', Date.now());
+//   obs.next(10);
+//   setTimeout(() => {
+//     obs.next(20);
+//     obs.next(30);
+//     obs.complete();
+//   }, 1000);
+// })
+//   .pipe(
+//     share()
+//   );
+// ob$.subscribe(createOutputObj('hot'));
+// ob$.subscribe(createOutputObj('hot2'));
 
+// topic('cold w/shareReplay = hot');
+// const ob$ = Observable.create(obs => {
+//   console.log('in create', Date.now());
+//   obs.next(1);
+//   obs.next(2);
+//   obs.next(3);
+//   setTimeout(() => {
+//     obs.next('a');
+//     obs.next('b');
+//     obs.complete();
+//   }, 1000);
+// })
+//   .pipe(
+//     shareReplay(2 /*, optional expireTimeInMS */)
+//   );
+// ob$.subscribe(createOutputObj('hot'));
+// ob$.subscribe(createOutputObj('hot2'));
 
-/* redux-logic ajax search https://github.com/jeffbski/redux-logic */
-// import './examples/redux-logic-ajax-search';
+// topic('bindCallback');
+// const fn = (val, cb) => {
+//   console.log('in fn', Date.now());
+//   /* could do async stuff here */
+//   cb({
+//     type: 'foo',
+//     payload: val
+//   });
+// };
+// const boundFn = bindCallback(fn);
+// const ob$ = boundFn('hello');
+// ob$.subscribe(createOutputObj('bindCallback'));
+// ob$.subscribe(createOutputObj('bindCallback2'));
 
+// topic('bindNodeCallback');
+// const fn = (val, cb) => {
+//   console.log('in fn', Date.now());
+//   /* could do async stuff here */
+//   const err = null;
+//   cb(err, {
+//     type: 'foo',
+//     payload: val
+//   });
+// };
+// const boundFn = bindNodeCallback(fn);
+// const ob$ = boundFn('hello');
+// ob$.subscribe(createOutputObj('bindCallback'));
+// ob$.subscribe(createOutputObj('bindCallback2'));
 
-/* redux-logic ajax search w/processOptions */
-// import './examples/redux-logic-ajax-search-process-options';
+// topic('bindNodeCallback erroring');
+// const fn = (val, cb) => {
+//   console.log('in fn', Date.now());
+//   /* could do async stuff here */
+//   const err = new Error('my error');
+//   cb(err);
+// };
+// const boundFn = bindNodeCallback(fn);
+// const ob$ = boundFn('hello');
+// ob$.subscribe(createOutputObj('bindCallback-err'));
+// ob$.subscribe(createOutputObj('bindCallback-err2'));
 
+// topic('fromEvent');
+// fromEvent(document, 'click')
+//   .subscribe(createOutputObj('fromEvent-click'));
+// fromEvent(document, 'mousemove')
+//   .subscribe(createOutputObj('fromEvent-mousemove'));
 
-/* redux-logic reconnecting websocket */
-// import './examples/redux-logic-rx-websocket';
+/* aggregation */
+
+// topic('aggregation with reduce, scan');
+// of(10, 20, 30)
+//   .pipe(
+//     reduce((acc, x) => acc + x, 0)
+//   )
+//   .subscribe(createOutputObj('reduce'));
+//
+// of(10, 20, 30)
+//   .pipe(
+//     scan((acc, x) => acc + x, 0)
+//   )
+//   .subscribe(createOutputObj('scan'));
+
+// topic('aggregation min, max, count');
+// of(20, 10, 30, 15)
+//   .pipe(
+//     min()
+//   )
+//   .subscribe(createOutputObj('min'));
+//
+// of(20, 10, 30, 15)
+//   .pipe(
+//     max()
+//   )
+//   .subscribe(createOutputObj('max'));
+//
+// of(20, 10, 30, 15)
+//   .pipe(
+//     count()
+//   )
+//   .subscribe(createOutputObj('count'));
+
+// topic('every');
+// of(10, 20, 30)
+//   .pipe(
+//     every(x => x < 20)
+//   )
+//   .subscribe(createOutputObj('every x < 20'));
+//
+// of(10, 20, 30)
+//   .pipe(
+//     every(x => x < 100)
+//   )
+//   .subscribe(createOutputObj('every x < 100'));
+
+// topic('sequenceEqual');
+// const ob1$ = of(10, 20, 30);
+// of(10, 20, 30)
+//   .pipe(
+//     sequenceEqual(ob1$)
+//   )
+//   .subscribe(createOutputObj('sequenceEqual'));
+//
+// of(10, 20, 30, 40)
+//   .pipe(
+//     sequenceEqual(ob1$)
+//   )
+//   .subscribe(createOutputObj('sequenceEqual2'));
+
+// topic('toArray operator')
+// of(10, 20, 30)
+//   .pipe(
+//     toArray()
+//   )
+//   .subscribe(createOutputObj('toArray'));

@@ -28,14 +28,14 @@
    - range
    - pairs(obj)
    - iif
-   - operators startsWith, defaultIfEmpty
+   - operators startWith, defaultIfEmpty
    - defer
    - Subject
      - BehaviorSubject
      - ReplaySubject
  - Hot / Cold Observables
    - publish, connect
-   - share
+   - share, shareReplay
  - binding callbacks
    - bindCallback
    - bindNodeCallback

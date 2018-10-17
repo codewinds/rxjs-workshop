@@ -61,12 +61,12 @@
    - filter
    - find
    - findIndex
-   - distinct
-   - distinctUntilChanged
-   - distinctUntilKeyChanged
    - first
    - last
    - elementAt
+   - distinct
+   - distinctUntilChanged
+   - distinctUntilKeyChanged
    - take
    - takeWhile
    - takeUntil
@@ -77,25 +77,26 @@
    - skipLast
  - ajax
  - time / sequence / combination
+   - timeStamp
+   - timeInterval
    - timeout, timeoutWith
    - retry, retryWhen
    - repeat
-   - concat
-   - merge
-   - forkJoin
-   - zip
-   - combineLatest
-   - withLatestFrom
    - debounce, debounceTime
    - throttle, throttleTime
    - audit, auditTime
    - sample, sampleTime
    - delay, delayWhen
+   - withLatestFrom
+   - concat
+   - merge
+   - forkJoin
+   - zip
+   - combineLatest
    - race
    - mergeMap, concatMap, switchMap
  - grouping
    - groupBy
-   - window, windowTime, windowCount, windowWhen, windowToggle
    - buffer, bufferTime, bufferCount, bufferWhen, bufferToggle
  - Exercises
    - button click use ajax to fetch
@@ -108,8 +109,6 @@
  - Creating custom operators
    - subscribe / create
    - composing with existing ones
- - Testing
-   - testScheduler.run(cb)
  - Integration
    - React
    - Vue

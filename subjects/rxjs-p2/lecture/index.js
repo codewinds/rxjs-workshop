@@ -26,7 +26,7 @@ const createOutputObj = (topic) => {
     error: err => console.log(`${topic}-error`, err),
     complete: () => console.log(`${topic}-complete`)
   };
-}
+};
 
 // topic('Marble Notation');
 /* TODO */

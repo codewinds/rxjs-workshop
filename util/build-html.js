@@ -5,7 +5,7 @@ const React = require('react');
 const DOM = require('react-dom-factories');
 const ReactDOMServer = require('react-dom/server');
 
-const courseTitle = 'rxjs-workshop';
+const courseTitle = 'rxjs-workshop connect.tech';
 
 const subjectsDir = Path.resolve(__dirname, '..', 'subjects');
 

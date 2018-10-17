@@ -146,6 +146,9 @@ describe('rxjs', () => {
   it('see rxjs-workshop/examples/angular/exercise, npm start, open localhost:4200 and use app');
   it('see rxjs-workshop/examples/angular/exercise-updated, npm install, update files using rxjs to use rxjs@6 imports and pipe operations');
 
+  it('see rxjs-workshop/examples/react/exercise, npm start, open localhost:3000 and use app');
+  it('see rxjs-workshop/examples/react/exercise, convert async processes in src/features/load-save-localforage-rxjs/index.js to use observables');
+
 });
 
 

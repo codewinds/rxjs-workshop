@@ -1,4 +1,4 @@
-# rxjs-workshop
+# rxjs-workshop - Connect.Tech 2018
 
 The workshop uses an auto-build development environment to transpile ES6/7 code to ES5 with Babel and bundle with Webpack. Node.js is used to run the environment.
 

@@ -1,5 +1,8 @@
-/* global Vue, Vuex, axios, FileReader */
+/* global Vue, Vuex, axios, FileReader, rxjs */
 ;(function () {
+  const { from } = rxjs;
+  const { map, tap } = rxjs.operators;
+
   Vue.use(Vuex)
 
   function randomId () {
@@ -44,13 +47,18 @@
     actions: {
       loadTodos ({ commit }) {
         commit('SET_LOADING', true)
-        axios
-          .get('/todos')
-          .then(r => r.data)
-          .then(todos => {
-            commit('SET_TODOS', todos)
-            commit('SET_LOADING', false)
-          })
+        from(
+          axios
+            .get('/todos')
+        )
+          .pipe(
+            map(r => r.data),
+            tap(todos => {
+              commit('SET_TODOS', todos)
+              commit('SET_LOADING', false)
+            })
+          )
+          .subscribe();
       },
       setNewTodo ({ commit }, todo) {
         commit('SET_NEW_TODO', todo)
@@ -65,15 +73,26 @@
           completed: false,
           id: randomId()
         }
-        axios.post('/todos', todo).then(_ => {
-          commit('ADD_TODO', todo)
-        })
+        from(
+          axios.post('/todos', todo)
+        )
+          .pipe(
+            tap(_ => {
+              commit('ADD_TODO', todo)
+            })
+          )
+          .subscribe();
       },
       removeTodo ({ commit }, todo) {
-        axios.delete(`/todos/${todo.id}`).then(_ => {
-          console.log('removed todo', todo.id, 'from the server')
-          commit('REMOVE_TODO', todo)
-        })
+        from(
+          axios.delete(`/todos/${todo.id}`)
+        ).pipe(
+          tap(_ => {
+            console.log('removed todo', todo.id, 'from the server')
+            commit('REMOVE_TODO', todo)
+          })
+        )
+        .subscribe();
       },
       clearNewTodo ({ commit }) {
         commit('CLEAR_NEW_TODO')

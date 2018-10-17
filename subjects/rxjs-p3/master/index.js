@@ -1,7 +1,7 @@
 import '../util/polyfill'; // first import polyfills
 import expect from 'expect-legacy';
-import { Observable, Subject, combineLatest, from, interval, merge, of, throwError, timer } from 'rxjs';
-import { catchError, debounceTime, take, throttleTime, filter, map, mergeMap, retryWhen, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subject, combineLatest, from, interval, merge, of, throwError, timer, zip, range } from 'rxjs';
+import { catchError, debounceTime, take, throttleTime, filter, map, mergeMap, retryWhen, switchMap, tap, skip } from 'rxjs/operators';
 import { ajax } from 'rxjs/ajax';
 import { webSocket } from 'rxjs/webSocket';
 import FAKE_API_JSON from '../../../public/fake-api.json'; // only for comparison
@@ -11,266 +11,6 @@ Error.stackTraceLimit = 3; // limit size of stack trace in chrome
 
 
 describe('rxjs', () => {
-
-  /* Using Observable.create */
-
-  it('use Observable.create to emit A, B, C and complete', done => {
-    // TODO 1a - create observable that emits 3 items and completes
-    // EXERCISE_START
-    const ob1a$ = Observable.create(obs => {
-    });
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob1a$ = Observable.create(obs => {
-      obs.next('A');
-      obs.next('B');
-      obs.next('C');
-      obs.complete();
-    });
-    // SOLUTION_END
-
-    const expected = ['A', 'B', 'C'];
-    const found = [];
-    ob1a$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-  it('use Observable.create to emit 2 items and then error', done => {
-    // TODO 1b - create observable that emits 2 items then errors
-    // EXERCISE_START
-    const ob1b$ = Observable.create(obs => {
-    });
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob1b$ = Observable.create(obs => {
-      obs.next(1);
-      obs.next(2);
-      obs.error(new Error('my error in 1b'));
-    });
-    // SOLUTION_END
-
-    const expected = [1, 2];
-    const found = [];
-    ob1b$.subscribe({
-      next: x => found.push(x),
-      error: err => {
-        expect(found).toEqual(expected);
-        done();
-      },
-      complete: () => done(new Error('should not complete'))
-    });
-  });
-
-  it('use Observable.create emits no items and completes', done => {
-    // TODO 1c - create observable that emits 0 items and completes
-    // EXERCISE_START
-    const ob1c$ = Observable.create(obs => {
-    });
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob1c$ = Observable.create(obs => {
-      obs.complete();
-    });
-    // SOLUTION_END
-
-    const expected = [];
-    const found = [];
-    ob1c$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-  /* Using Observable of */
-
-  it('use Observable of to emit one item', done => {
-    // TODO 2a - create observable that emits 1 item string '2A'
-    // EXERCISE_START
-    const ob2a$ = of(/* TODO replace this comment */);
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob2a$ = of('2A');
-    // SOLUTION_END
-
-    const expected = ['2A'];
-    const found = [];
-    ob2a$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-  it('use Observable of to emit A, B, C', done => {
-    // TODO 2b - create observable that emits 3 items A, B, C
-    // EXERCISE_START
-    const ob2b$ = of(/* TODO replace this */);
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob2b$ = of('A', 'B', 'C');
-    // SOLUTION_END
-
-    const expected = ['A', 'B', 'C'];
-    const found = [];
-    ob2b$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-
-  it('use Observable of to create empty observable', done => {
-    // TODO 2c - create observable that emits 0 items
-    // EXERCISE_START
-    const ob2c$ = null; // TODO replace
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob2c$ = of();
-    // SOLUTION_END
-
-    const expected = [];
-    const found = [];
-    ob2c$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-
-  /* Using Observable throwError */
-
-  it('use Observable throwError to create observable that errors', done => {
-    // TODO 3a - create observable that errors
-    // EXERCISE_START
-    const ob3a$ = null; // TODO replace this
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob3a$ = throwError(new Error('my error 3a'));
-    // SOLUTION_END
-
-    const expected = [];
-    const found = [];
-    ob3a$.subscribe({
-      next: x => found.push(x),
-      error: err => {
-        expect(found).toEqual(expected);
-        done();
-      },
-      complete: () => done(new Error('should not complete since errors'))
-    });
-  });
-
-  it('make err obs but catch and emit obj instead', done => {
-    // TODO 3b - create observable that errors, but catch and emit an
-    // object instead
-    // EXERCISE_START
-    const ob3b$ = null; // TODO replace this
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob3b$ = throwError(new Error('error 3b'))
-      .pipe(
-        catchError(err => of({
-          type: 'ERROR_3B',
-          error: true
-        }))
-      )
-    // SOLUTION_END
-
-    const expected = [
-      { type: 'ERROR_3B', error: true }
-    ];
-    const found = [];
-    ob3b$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-
-  /* Using Observable from */
-
-  it('create observable from a promise', done => {
-    // TODO 4 - create observable from a promise
-    const prom4 = new Promise((resolve, reject) => {
-      resolve(4);
-    });
-    // EXERCISE_START
-    const ob4$ = null; // TODO replace this
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob4$ = from(prom4);
-    // SOLUTION_END
-
-    const expected = [4];
-    const found = [];
-    ob4$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-
-  /* Using any observable methods and piping operators */
-
-  it('obs emits every 0.1s, only 5 times, filters odd, multi by 100', done => {
-    // TODO 5 create observable incr every 0.1 seconds start with 0
-    // TODO 5b and stops emitting after 5 values
-    // TODO 5c and filters out odd values
-    // TODO 5d and multiplies value by 100
-    // EXERCISE_START
-    const ob5$ = null; // TODO replace this
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob5$ = interval(100)
-      .pipe(
-        take(5),
-        filter(x => !(x % 2)),
-        map(x => x * 100)
-      );
-    // SOLUTION_END
-
-    const expected = [0, 200, 400];
-    const found = [];
-
-    ob5$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
 
   /* Using Observable ajax.getJSON */
 
@@ -512,132 +252,137 @@ describe('rxjs', () => {
     });
   });
 
-  it('send and receive from webSocket', done => {
-    /*
-       TODO send and receive from a webSocket ws://localhost:8010
-       TODO 9a create a webSocket subject connected to ws://localhost:8010
-       TODO 9b send 'foo'
-       TODO 9c send 'bar'
-       TODO 9d receive all (2) messages from ws, add to arrReceived
-       TODO 9e after receiving 2 messages, close connection to WS
-       TODO 9f after WS closes, call checkArrReceived
-     */
-    const url = 'ws://localhost:8010'; // local WS echo service
-    const arrReceived = []; // messages received from ws
+  it('using interval observable which emits every 0.1s, skip first 2 values and take a total of 3 values', done => {
+    /* TODO 9  */
+
     // EXERCISE_START
-    const wsSubject = null; // TODO replace
+    const ob8c$ = null; // TODO replace this
     // EXERCISE_END
     // SOLUTION_START
-    const wsSubject = webSocket({
-      url,
-      resultSelector: x => x.data  // default does JSON.parse(x.data)
-    });
-    // send to WS, will be queued until connected with subscribe
-    wsSubject.next('foo');
-    wsSubject.next('bar');
-    wsSubject.subscribe(
-      x => {
-        arrReceived.push(x);
-        if (arrReceived.length === 2) {
-          wsSubject.complete(); // close connection
-        }
-      },
-      err => done(err),
-      () => checkArrReceived()
-    );
-    // SOLUTION_END
-    expect(wsSubject).toBeA(Subject, 'expected wsSubject to be a webSocket subject');
-    function checkArrReceived() {
-      expect(arrReceived).toEqual(['foo', 'bar']);
-      done();
-    }
-  });
-
-  it('send and receive from reconnecting webSocket', done => {
-    /*
-       TODO send and receive from an auto-reconnecting webSocket
-       TODO track the opens and closes via a wsConnected$ subject
-       TODO 10a create an openObserver subject
-       TODO 10b create a closeObserver subject
-       TODO 10c merge openObserver and closeObserver into wsConnected$ which emits true if connected, false if disconnected
-       TODO 10a create a webSocket subject connected to ws://localhost:8010 using the openObserver and closeObserver to track connection
-       TODO 10b create a reconnecting WS observable that reconnects after 1s delay on failure
-       TODO 10c create a new subject rwsSubject which combines the write side of your webSocket subject and the read side of the reconnecting WS observable
-       TODO 10d listen to wsConnected$ and when it emits a false indicating the connection closed, call checkArrReceived
-       TODO 10e send 'foo' using rwsSubject
-       TODO 10f send 'bar' using rwsSubject
-       TODO 10g receive all (2) messages from rwsSubject, add to arrReceived
-       TODO 10h after receiving 2 messages, close connection to WS
-     */
-    const url = 'ws://localhost:8010'; // local WS echo service
-    const arrReceived = []; // messages received from ws
-    // EXERCISE_START
-    const openObserver = null; // TODO replace
-    const closeObserver = null; // TODO replace
-    const wsConnected$ = null; // TODO replace
-    const wsSubject = null; // TODO replace
-    const reconWebSocket$ = null; // TODO replace
-    const rwsSubject = null; // TODO replace
-    // EXERCISE_END
-    // SOLUTION_START
-    // for tracking WS connections
-    const openObserver = new Subject();
-    const closeObserver = new Subject();
-    const wsConnected$ = merge(
-      openObserver.pipe(map(() => true)),  // ws is connected
-      closeObserver.pipe(map(() => false)) // ws is disconnected
-    );
-
-    const wsSubject = webSocket({
-      url,
-      openObserver, // track WS connection opens
-      closeObserver, // track WS disconnects
-      resultSelector: x => x.data  // default does JSON.parse(x.data)
-    });
-
-    // make a reconnecting WS listener, delay 1s after err
-    const reconWebSocket$ = wsSubject
+    const ob8c$ = interval(100)
       .pipe(
-        retryWhen(errors =>
-          errors
-            .pipe(
-              tap(err => console.error(err)),
-              switchMap(err => timer(1000))
-            )
-        )
-      )
-
-    // combine the write side of webSocket Subject with
-    // reconnecting read side of reconWebSocket$ into one subject
-    const rwsSubject = Subject.create(
-      wsSubject,
-      reconWebSocket$
-    );
-
-    wsConnected$
-      .pipe(filter(x => x === false)) // only false, closes
-      .subscribe(() => checkArrReceived());
-
-    // send to WS, will be queued until connected with subscribe
-    rwsSubject.next('foo');
-    rwsSubject.next('bar');
-    rwsSubject.subscribe(
-      x => {
-        arrReceived.push(x);
-        if (arrReceived.length === 2) {
-          rwsSubject.complete(); // close connection
-        }
-      },
-      err => done(err)
-    );
+        skip(2),
+        take(3)
+      );
     // SOLUTION_END
-    expect(rwsSubject).toBeA(Subject, 'expected rwsSubject to be a webSocket subject');
-    expect(wsConnected$).toBeAn(Observable, 'expected wsConnected$ to be an Observable');
-    function checkArrReceived() {
-      expect(arrReceived).toEqual(['foo', 'bar']);
-      done();
-    }
+
+    const expected = [2,3,4];
+    const found = [];
+    ob8c$.subscribe({
+      next: x => found.push(x),
+      error: err => done(err),
+      complete: () => {
+        expect(found).toEqual(expected);
+        done();
+      }
+    });
   });
+
+  it('create an observable which adds values from two other observables and emits each total', done => {
+    /* TODO 10  */
+    const a$ = of(10, 20, 30);
+    const b$ = of(1, 2, 3);
+
+    // EXERCISE_START
+    const ob8c$ = null; // TODO replace this
+    // EXERCISE_END
+    // SOLUTION_START
+    const ob8c$ = zip(a$, b$)
+      .pipe(
+        map(x => x[0] + x[1])
+      );
+    // SOLUTION_END
+
+    const expected = [11,22,33];
+    const found = [];
+    ob8c$.subscribe({
+      next: x => found.push(x),
+      error: err => done(err),
+      complete: () => {
+        expect(found).toEqual(expected);
+        done();
+      }
+    });
+  });
+
+  it('use mergeMap to make three ajax requests to /fake-api.json and emit all each of the results', done => {
+    /* TODO 11  */
+    // EXERCISE_START
+    const ob8c$ = null; // TODO replace this
+    // EXERCISE_END
+    // SOLUTION_START
+    const ob8c$ = range(0, 3)
+      .pipe(
+        mergeMap(x => ajax({
+          url: `/fake-api.json`,
+          crossDomain: true,
+          responseType: 'json'
+        })),
+        map(ret => ret.response)  /* use results prop of payload */
+      );
+    // SOLUTION_END
+
+    const expected = [
+      {
+        "items": [
+          {
+            "id": 1,
+            "name": "Foo"
+          },
+          {
+            "id": 2,
+            "name": "Bar"
+          },
+          {
+            "id": 3,
+            "name": "Baz"
+          }
+        ]
+      },
+      {
+        "items": [
+          {
+            "id": 1,
+            "name": "Foo"
+          },
+          {
+            "id": 2,
+            "name": "Bar"
+          },
+          {
+            "id": 3,
+            "name": "Baz"
+          }
+        ]
+      },
+      {
+        "items": [
+          {
+            "id": 1,
+            "name": "Foo"
+          },
+          {
+            "id": 2,
+            "name": "Bar"
+          },
+          {
+            "id": 3,
+            "name": "Baz"
+          }
+        ]
+      }
+    ];
+    const found = [];
+    ob8c$.subscribe({
+      next: x => found.push(x),
+      error: err => done(err),
+      complete: () => {
+        expect(found).toEqual(expected);
+        done();
+      }
+    });
+  });
+
 
 
 

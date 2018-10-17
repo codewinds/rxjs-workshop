@@ -1,7 +1,7 @@
 import '../util/polyfill'; // first import polyfills
 import expect from 'expect-legacy';
-import { Observable, Subject, combineLatest, from, interval, merge, of, throwError, timer } from 'rxjs';
-import { catchError, debounceTime, take, throttleTime, filter, map, mergeMap, retryWhen, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subject, combineLatest, from, interval, merge, of, throwError, timer, EMPTY, range, pairs } from 'rxjs';
+import { catchError, debounceTime, take, throttleTime, filter, map, mergeMap, retryWhen, switchMap, tap, min, toArray } from 'rxjs/operators';
 import { ajax } from 'rxjs/ajax';
 import { webSocket } from 'rxjs/webSocket';
 import FAKE_API_JSON from '../../../public/fake-api.json'; // only for comparison
@@ -12,76 +12,19 @@ Error.stackTraceLimit = 3; // limit size of stack trace in chrome
 
 describe('rxjs', () => {
 
-  /* Using Observable.create */
-
-  it('use Observable.create to emit A, B, C and complete', done => {
-    // TODO 1a - create observable that emits 3 items and completes
+  it('create empty observable', done => {
+    // TODO 1 create empty observable, no values, but does complete
     // EXERCISE_START
-    const ob1a$ = Observable.create(obs => {
-    });
+    const ob5$ = null; // TODO replace this with empty observable
     // EXERCISE_END
     // SOLUTION_START
-    const ob1a$ = Observable.create(obs => {
-      obs.next('A');
-      obs.next('B');
-      obs.next('C');
-      obs.complete();
-    });
-    // SOLUTION_END
-
-    const expected = ['A', 'B', 'C'];
-    const found = [];
-    ob1a$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-  it('use Observable.create to emit 2 items and then error', done => {
-    // TODO 1b - create observable that emits 2 items then errors
-    // EXERCISE_START
-    const ob1b$ = Observable.create(obs => {
-    });
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob1b$ = Observable.create(obs => {
-      obs.next(1);
-      obs.next(2);
-      obs.error(new Error('my error in 1b'));
-    });
-    // SOLUTION_END
-
-    const expected = [1, 2];
-    const found = [];
-    ob1b$.subscribe({
-      next: x => found.push(x),
-      error: err => {
-        expect(found).toEqual(expected);
-        done();
-      },
-      complete: () => done(new Error('should not complete'))
-    });
-  });
-
-  it('use Observable.create emits no items and completes', done => {
-    // TODO 1c - create observable that emits 0 items and completes
-    // EXERCISE_START
-    const ob1c$ = Observable.create(obs => {
-    });
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob1c$ = Observable.create(obs => {
-      obs.complete();
-    });
+    const ob5$ = EMPTY;
     // SOLUTION_END
 
     const expected = [];
     const found = [];
-    ob1c$.subscribe({
+
+    ob5$.subscribe({
       next: x => found.push(x),
       error: err => done(err),
       complete: () => {
@@ -91,117 +34,22 @@ describe('rxjs', () => {
     });
   });
 
-  /* Using Observable of */
-
-  it('use Observable of to emit one item', done => {
-    // TODO 2a - create observable that emits 1 item string '2A'
+  it('create timer observable that emits "abc" after 1s', done => {
+    // TODO 2
     // EXERCISE_START
-    const ob2a$ = of(/* TODO replace this comment */);
+    const ob5$ = null; // TODO replace this
     // EXERCISE_END
     // SOLUTION_START
-    const ob2a$ = of('2A');
-    // SOLUTION_END
-
-    const expected = ['2A'];
-    const found = [];
-    ob2a$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-  it('use Observable of to emit A, B, C', done => {
-    // TODO 2b - create observable that emits 3 items A, B, C
-    // EXERCISE_START
-    const ob2b$ = of(/* TODO replace this */);
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob2b$ = of('A', 'B', 'C');
-    // SOLUTION_END
-
-    const expected = ['A', 'B', 'C'];
-    const found = [];
-    ob2b$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-
-  it('use Observable of to create empty observable', done => {
-    // TODO 2c - create observable that emits 0 items
-    // EXERCISE_START
-    const ob2c$ = null; // TODO replace
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob2c$ = of();
-    // SOLUTION_END
-
-    const expected = [];
-    const found = [];
-    ob2c$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-
-  /* Using Observable throwError */
-
-  it('use Observable throwError to create observable that errors', done => {
-    // TODO 3a - create observable that errors
-    // EXERCISE_START
-    const ob3a$ = null; // TODO replace this
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob3a$ = throwError(new Error('my error 3a'));
-    // SOLUTION_END
-
-    const expected = [];
-    const found = [];
-    ob3a$.subscribe({
-      next: x => found.push(x),
-      error: err => {
-        expect(found).toEqual(expected);
-        done();
-      },
-      complete: () => done(new Error('should not complete since errors'))
-    });
-  });
-
-  it('make err obs but catch and emit obj instead', done => {
-    // TODO 3b - create observable that errors, but catch and emit an
-    // object instead
-    // EXERCISE_START
-    const ob3b$ = null; // TODO replace this
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob3b$ = throwError(new Error('error 3b'))
+    const ob5$ = timer(1000)
       .pipe(
-        catchError(err => of({
-          type: 'ERROR_3B',
-          error: true
-        }))
-      )
+        map(x => 'abc')
+      );
     // SOLUTION_END
 
-    const expected = [
-      { type: 'ERROR_3B', error: true }
-    ];
+    const expected = ['abc'];
     const found = [];
-    ob3b$.subscribe({
+
+    ob5$.subscribe({
       next: x => found.push(x),
       error: err => done(err),
       complete: () => {
@@ -211,24 +59,19 @@ describe('rxjs', () => {
     });
   });
 
-
-  /* Using Observable from */
-
-  it('create observable from a promise', done => {
-    // TODO 4 - create observable from a promise
-    const prom4 = new Promise((resolve, reject) => {
-      resolve(4);
-    });
+  it('create range observable with values from 0-9', done => {
+    // TODO 4
     // EXERCISE_START
-    const ob4$ = null; // TODO replace this
+    const ob5$ = null; // TODO replace this
     // EXERCISE_END
     // SOLUTION_START
-    const ob4$ = from(prom4);
+    const ob5$ = range(0, 10);
     // SOLUTION_END
 
-    const expected = [4];
+    const expected = [0,1,2,3,4,5,6,7,8,9];
     const found = [];
-    ob4$.subscribe({
+
+    ob5$.subscribe({
       next: x => found.push(x),
       error: err => done(err),
       complete: () => {
@@ -271,42 +114,24 @@ describe('rxjs', () => {
     });
   });
 
-
-  /* Using Observable ajax.getJSON */
-
-
-  it('use Observable ajax to fetch /fake-api.json and return object', done => {
-    // TODO 6 fetch '/fake-api.json' and transform into
-    // an action object FETCH_SUCCESS with the results as the payload.
-    // Also catch any error and emit an error action FETCH_ERROR with
-    // the error as its payload
+  it('iterate over all key values in an obj and output as array pairs', done => {
+    // TODO 6
+    const obj = {
+      a: 10,
+      b: 20,
+      c: 30
+    };
     // EXERCISE_START
-    const ob6$ = null; // TODO replace this
+    const ob5$ = null; // TODO replace this
     // EXERCISE_END
     // SOLUTION_START
-    const ob6$ = ajax.getJSON('/fake-api.json')
-      .pipe(
-        map(data => data.items),
-        map(items => ({
-          type: 'FETCH_SUCCESS',
-          payload: items
-        })),
-        catchError(err => of({
-          type: 'FETCH_ERROR',
-          payload: err,
-          error: true
-        }))
-      );
+    const ob5$ = pairs(obj);
     // SOLUTION_END
 
-    const expected = [
-      {
-        type: 'FETCH_SUCCESS',
-        payload: FAKE_API_JSON.items
-      }
-    ];
+    const expected = [['a', 10], ['b', 20], ['c', 30]];
     const found = [];
-    ob6$.subscribe({
+
+    ob5$.subscribe({
       next: x => found.push(x),
       error: err => done(err),
       complete: () => {
@@ -316,50 +141,52 @@ describe('rxjs', () => {
     });
   });
 
-  /* Using Observable interval(1000).take(2) with mergeMap to trigger
-     Observable ajax.getJSON('/fake-api.json') like in step 6
-     Hint: you can reuse ob6$ */
+  it('use a subject to create an observable that emits 10, 20, 30 and completes', done => {
+    // TODO 7, note scroll down to find START
+    const sub$ = new Subject();
 
-  it('every 0.5s use mergeMap to fetch ajax, only twice', done => {
-    // TODO 7a have an interval observable trigger a refresh of items
-    // once every 0.5s for 1 second and emit actions for each (like previous)
+    const expected = [10, 20, 30];
+    const found = [];
+
+    sub$.subscribe({
+      next: x => found.push(x),
+      error: err => done(err),
+      complete: () => {
+        expect(found).toEqual(expected);
+        done();
+      }
+    });
+
     // EXERCISE_START
-    const ob7a$ = null; // TODO replace this
+      /* emit 10, 20, 30 on subject and complete */
     // EXERCISE_END
     // SOLUTION_START
-    const fetch$ = ajax.getJSON('/fake-api.json')
-      .pipe(
-        map(data => data.items),
-        map(items => ({
-          type: 'FETCH_SUCCESS',
-          payload: items
-        })),
-        catchError(err => of({
-          type: 'FETCH_ERROR',
-          payload: err,
-          error: true
-        }))
-      );
+    sub$.next(10);
+    sub$.next(20);
+    sub$.next(30);
+    sub$.complete();
+    // SOLUTION_END
+  });
 
-    const ob7a$ = interval(500)
+  it('find the min value from an observable', done => {
+    // TODO 8
+    // EXERCISE_START
+    const ob5$ = of(10, 20, 30)
       .pipe(
-        take(2),
-        mergeMap(x => fetch$)
+        // TODO find min value
+      );
+    // EXERCISE_END
+    // SOLUTION_START
+    const ob5$ = of(10, 20, 30)
+      .pipe(
+        min()
       );
     // SOLUTION_END
 
-    const expected = [
-      {
-        type: 'FETCH_SUCCESS',
-        payload: FAKE_API_JSON.items
-      },
-      {
-        type: 'FETCH_SUCCESS',
-        payload: FAKE_API_JSON.items
-      }
-    ];
+    const expected = [10];
     const found = [];
-    ob7a$.subscribe({
+
+    ob5$.subscribe({
       next: x => found.push(x),
       error: err => done(err),
       complete: () => {
@@ -369,44 +196,25 @@ describe('rxjs', () => {
     });
   });
 
-
-  it('like previous but throttle 1/s', done => {
-    // TODO 7b like 7a, but throttle the requests so there is only
-    // a max of 1 request per second (resulting in a single request)
+  it('convert all obs values to an array in an observable pipe', done => {
+    // TODO 9
     // EXERCISE_START
-    const ob7b$ = null; // TODO replace this
+    const ob5$ = of(10, 20, 30)
+      .pipe(
+        // TODO convert to an array
+      );
     // EXERCISE_END
     // SOLUTION_START
-    const fetch$ = ajax.getJSON('/fake-api.json')
+    const ob5$ = of(10, 20, 30)
       .pipe(
-        map(data => data.items),
-        map(items => ({
-          type: 'FETCH_SUCCESS',
-          payload: items
-        })),
-        catchError(err => of({
-          type: 'FETCH_ERROR',
-          payload: err,
-          error: true
-        }))
-      );
-
-    const ob7b$ = interval(500)
-      .pipe(
-        take(2),
-        throttleTime(1000),
-        mergeMap(x => fetch$)
+        toArray()
       );
     // SOLUTION_END
 
-    const expected = [
-      {
-        type: 'FETCH_SUCCESS',
-        payload: FAKE_API_JSON.items
-      }
-    ];
+    const expected = [[10, 20, 30]];
     const found = [];
-    ob7b$.subscribe({
+
+    ob5$.subscribe({
       next: x => found.push(x),
       error: err => done(err),
       complete: () => {
@@ -417,227 +225,6 @@ describe('rxjs', () => {
   });
 
 
-  it('like 7a but debounce for 0.6s', done => {
-    // TODO 7c like 7a, but debounce the requests so it won't make
-    // a request until there has been a pause of more than 3 seconds
-    // EXERCISE_START
-    const ob7c$ = null; // TODO replace this
-    // EXERCISE_END
-    // SOLUTION_START
-    const fetch$ = ajax.getJSON('/fake-api.json')
-      .pipe(
-        map(data => data.items),
-        map(items => ({
-          type: 'FETCH_SUCCESS',
-          payload: items
-        })),
-        catchError(err => of({
-          type: 'FETCH_ERROR',
-          payload: err,
-          error: true
-        }))
-      );
-
-    const ob7c$ = interval(500)
-      .pipe(
-        take(2),
-        debounceTime(600),
-        mergeMap(x => fetch$)
-      );
-    // SOLUTION_END
-
-    const expected = [
-      {
-        type: 'FETCH_SUCCESS',
-        payload: FAKE_API_JSON.items
-      }
-    ];
-    const found = [];
-    ob7c$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-
-  it('use Observable combineLatest to combine two obs', done => {
-    /* TODO 8 Using Observable combineLatest combine the latest values from
-       2 observables into one observable emitting an object with both values
-     */
-
-    const ob8a$ = interval(100)
-      .pipe(
-        take(3),
-        map(x => x * 100)
-      );
-    const ob8b$ = interval(30)
-      .pipe(
-        take(5)
-      );
-    // TODO 8 - use combineLatest to combine the latest values from ob8a$
-    // and ob8b$ emitting an object with the values from each
-    // EXERCISE_START
-    const ob8c$ = null; // TODO replace this
-    // EXERCISE_END
-    // SOLUTION_START
-    const ob8c$ = combineLatest(
-      ob8a$,
-      ob8b$,
-      (a, b) => ({
-        a,
-        b
-      })
-    );
-    // SOLUTION_END
-
-    const expected = [
-      { a: 0, b: 2 },
-      { a: 0, b: 3 },
-      { a: 0, b: 4 },
-      { a: 100, b: 4 },
-      { a: 200, b: 4 }
-    ];
-    const found = [];
-    ob8c$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-  it('send and receive from webSocket', done => {
-    /*
-       TODO send and receive from a webSocket ws://localhost:8010
-       TODO 9a create a webSocket subject connected to ws://localhost:8010
-       TODO 9b send 'foo'
-       TODO 9c send 'bar'
-       TODO 9d receive all (2) messages from ws, add to arrReceived
-       TODO 9e after receiving 2 messages, close connection to WS
-       TODO 9f after WS closes, call checkArrReceived
-     */
-    const url = 'ws://localhost:8010'; // local WS echo service
-    const arrReceived = []; // messages received from ws
-    // EXERCISE_START
-    const wsSubject = null; // TODO replace
-    // EXERCISE_END
-    // SOLUTION_START
-    const wsSubject = webSocket({
-      url,
-      resultSelector: x => x.data  // default does JSON.parse(x.data)
-    });
-    // send to WS, will be queued until connected with subscribe
-    wsSubject.next('foo');
-    wsSubject.next('bar');
-    wsSubject.subscribe(
-      x => {
-        arrReceived.push(x);
-        if (arrReceived.length === 2) {
-          wsSubject.complete(); // close connection
-        }
-      },
-      err => done(err),
-      () => checkArrReceived()
-    );
-    // SOLUTION_END
-    expect(wsSubject).toBeA(Subject, 'expected wsSubject to be a webSocket subject');
-    function checkArrReceived() {
-      expect(arrReceived).toEqual(['foo', 'bar']);
-      done();
-    }
-  });
-
-  it('send and receive from reconnecting webSocket', done => {
-    /*
-       TODO send and receive from an auto-reconnecting webSocket
-       TODO track the opens and closes via a wsConnected$ subject
-       TODO 10a create an openObserver subject
-       TODO 10b create a closeObserver subject
-       TODO 10c merge openObserver and closeObserver into wsConnected$ which emits true if connected, false if disconnected
-       TODO 10a create a webSocket subject connected to ws://localhost:8010 using the openObserver and closeObserver to track connection
-       TODO 10b create a reconnecting WS observable that reconnects after 1s delay on failure
-       TODO 10c create a new subject rwsSubject which combines the write side of your webSocket subject and the read side of the reconnecting WS observable
-       TODO 10d listen to wsConnected$ and when it emits a false indicating the connection closed, call checkArrReceived
-       TODO 10e send 'foo' using rwsSubject
-       TODO 10f send 'bar' using rwsSubject
-       TODO 10g receive all (2) messages from rwsSubject, add to arrReceived
-       TODO 10h after receiving 2 messages, close connection to WS
-     */
-    const url = 'ws://localhost:8010'; // local WS echo service
-    const arrReceived = []; // messages received from ws
-    // EXERCISE_START
-    const openObserver = null; // TODO replace
-    const closeObserver = null; // TODO replace
-    const wsConnected$ = null; // TODO replace
-    const wsSubject = null; // TODO replace
-    const reconWebSocket$ = null; // TODO replace
-    const rwsSubject = null; // TODO replace
-    // EXERCISE_END
-    // SOLUTION_START
-    // for tracking WS connections
-    const openObserver = new Subject();
-    const closeObserver = new Subject();
-    const wsConnected$ = merge(
-      openObserver.pipe(map(() => true)),  // ws is connected
-      closeObserver.pipe(map(() => false)) // ws is disconnected
-    );
-
-    const wsSubject = webSocket({
-      url,
-      openObserver, // track WS connection opens
-      closeObserver, // track WS disconnects
-      resultSelector: x => x.data  // default does JSON.parse(x.data)
-    });
-
-    // make a reconnecting WS listener, delay 1s after err
-    const reconWebSocket$ = wsSubject
-      .pipe(
-        retryWhen(errors =>
-          errors
-            .pipe(
-              tap(err => console.error(err)),
-              switchMap(err => timer(1000))
-            )
-        )
-      )
-
-    // combine the write side of webSocket Subject with
-    // reconnecting read side of reconWebSocket$ into one subject
-    const rwsSubject = Subject.create(
-      wsSubject,
-      reconWebSocket$
-    );
-
-    wsConnected$
-      .pipe(filter(x => x === false)) // only false, closes
-      .subscribe(() => checkArrReceived());
-
-    // send to WS, will be queued until connected with subscribe
-    rwsSubject.next('foo');
-    rwsSubject.next('bar');
-    rwsSubject.subscribe(
-      x => {
-        arrReceived.push(x);
-        if (arrReceived.length === 2) {
-          rwsSubject.complete(); // close connection
-        }
-      },
-      err => done(err)
-    );
-    // SOLUTION_END
-    expect(rwsSubject).toBeA(Subject, 'expected rwsSubject to be a webSocket subject');
-    expect(wsConnected$).toBeAn(Observable, 'expected wsConnected$ to be an Observable');
-    function checkArrReceived() {
-      expect(arrReceived).toEqual(['foo', 'bar']);
-      done();
-    }
-  });
 
 
 

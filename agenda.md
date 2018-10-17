@@ -14,7 +14,6 @@
  - Operators map, filter, reduce, scan, catchError
  - from value, array, promise, obs, iterable
    - mention difference between from(arr) and of(arr)
- - Exercise: axios or fetch returns promise, can convert into observable
 
 ## Part 2
 
@@ -48,12 +47,6 @@
    - every
    - sequenceEqual
    - toArray
- - Exercises
-   - mouse moves
-   - display the max x, y
-   - display the formatted current time every second
-   - button click - uses fetch or axios to get data and output it
-
 
 ## Part 3
 
@@ -98,10 +91,6 @@
  - grouping
    - groupBy
    - buffer, bufferTime, bufferCount, bufferWhen, bufferToggle
- - Exercises
-   - button click use ajax to fetch
-   - button click use ajax to fetch with timeout x
-   - multiple button click to fetch url until another button click cancels and causes different fetch
 
 ## Part 4
 

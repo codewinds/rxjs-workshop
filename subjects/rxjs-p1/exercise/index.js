@@ -1,10 +1,11 @@
 import '../util/polyfill'; // first import polyfills
 import expect from 'expect-legacy';
 import { Observable, Subject, combineLatest, from, interval, merge, of, throwError, timer } from 'rxjs';
-import { catchError, debounceTime, take, throttleTime, filter, map, mergeMap, retryWhen, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, take, throttleTime, filter, map, mergeMap, retryWhen, switchMap, tap, reduce } from 'rxjs/operators';
 import { ajax } from 'rxjs/ajax';
 import { webSocket } from 'rxjs/webSocket';
 import FAKE_API_JSON from '../../../public/fake-api.json'; // only for comparison
+import axios from 'axios';
 
 Error.stackTraceLimit = 3; // limit size of stack trace in chrome
 
@@ -176,161 +177,57 @@ describe('rxjs', () => {
     });
   });
 
+  /* Use axios.get which returns a promise in an observable */
 
-  /* Using any observable methods and piping operators */
+  it('using axios.get create observable from promise', done => {
+    // TODO 4b - using axios.get create observable from promise
+    // TODO use axios.get to fetch /fake-api.json
+    const prom4b = axios.get('/fake-api.json');
 
-  it('obs emits every 0.1s, only 5 times, filters odd, multi by 100', done => {
-    // TODO 5 create observable incr every 0.1 seconds start with 0
-    // TODO 5b and stops emitting after 5 values
-    // TODO 5c and filters out odd values
-    // TODO 5d and multiplies value by 100
-    const ob5$ = null; // TODO replace this
-
-    const expected = [0, 200, 400];
-    const found = [];
-
-    ob5$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-
-  /* Using Observable ajax.getJSON */
-
-
-  it('use Observable ajax to fetch /fake-api.json and return object', done => {
-    // TODO 6 fetch '/fake-api.json' and transform into
-    // an action object FETCH_SUCCESS with the results as the payload.
-    // Also catch any error and emit an error action FETCH_ERROR with
-    // the error as its payload
-    const ob6$ = null; // TODO replace this
+    const ob4$ = null; // TODO replace this
 
     const expected = [
       {
-        type: 'FETCH_SUCCESS',
-        payload: FAKE_API_JSON.items
+        "items": [
+          {
+            "id": 1,
+            "name": "Foo"
+          },
+          {
+            "id": 2,
+            "name": "Bar"
+          },
+          {
+            "id": 3,
+            "name": "Baz"
+          }
+        ]
       }
     ];
     const found = [];
-    ob6$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-  /* Using Observable interval(1000).take(2) with mergeMap to trigger
-     Observable ajax.getJSON('/fake-api.json') like in step 6
-     Hint: you can reuse ob6$ */
-
-  it('every 0.5s use mergeMap to fetch ajax, only twice', done => {
-    // TODO 7a have an interval observable trigger a refresh of items
-    // once every 0.5s for 1 second and emit actions for each (like previous)
-    const ob7a$ = null; // TODO replace this
-
-    const expected = [
-      {
-        type: 'FETCH_SUCCESS',
-        payload: FAKE_API_JSON.items
-      },
-      {
-        type: 'FETCH_SUCCESS',
-        payload: FAKE_API_JSON.items
-      }
-    ];
-    const found = [];
-    ob7a$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-
-  it('like previous but throttle 1/s', done => {
-    // TODO 7b like 7a, but throttle the requests so there is only
-    // a max of 1 request per second (resulting in a single request)
-    const ob7b$ = null; // TODO replace this
-
-    const expected = [
-      {
-        type: 'FETCH_SUCCESS',
-        payload: FAKE_API_JSON.items
-      }
-    ];
-    const found = [];
-    ob7b$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-
-  it('like 7a but debounce for 0.6s', done => {
-    // TODO 7c like 7a, but debounce the requests so it won't make
-    // a request until there has been a pause of more than 3 seconds
-    const ob7c$ = null; // TODO replace this
-
-    const expected = [
-      {
-        type: 'FETCH_SUCCESS',
-        payload: FAKE_API_JSON.items
-      }
-    ];
-    const found = [];
-    ob7c$.subscribe({
-      next: x => found.push(x),
-      error: err => done(err),
-      complete: () => {
-        expect(found).toEqual(expected);
-        done();
-      }
-    });
-  });
-
-
-  it('use Observable combineLatest to combine two obs', done => {
-    /* TODO 8 Using Observable combineLatest combine the latest values from
-       2 observables into one observable emitting an object with both values
-     */
-
-    const ob8a$ = interval(100)
+    ob4$
       .pipe(
-        take(3),
-        map(x => x * 100)
-      );
-    const ob8b$ = interval(30)
-      .pipe(
-        take(5)
-      );
-    // TODO 8 - use combineLatest to combine the latest values from ob8a$
-    // and ob8b$ emitting an object with the values from each
-    const ob8c$ = null; // TODO replace this
+        map(x => x.data)
+      )
+      .subscribe({
+        next: x => found.push(x),
+        error: err => done(err),
+        complete: () => {
+          expect(found).toEqual(expected);
+          done();
+        }
+      });
+  });
 
-    const expected = [
-      { a: 0, b: 2 },
-      { a: 0, b: 3 },
-      { a: 0, b: 4 },
-      { a: 100, b: 4 },
-      { a: 200, b: 4 }
-    ];
+
+  it('filter values to only those < 25', done => {
+    // TODO 5
+    /* apply filter to ob1a */
+    const ob1a$ = of(10, 20, 30, 40);
+
+    const expected = [10, 20];
     const found = [];
-    ob8c$.subscribe({
+    ob1a$.subscribe({
       next: x => found.push(x),
       error: err => done(err),
       complete: () => {
@@ -340,57 +237,79 @@ describe('rxjs', () => {
     });
   });
 
-  it('send and receive from webSocket', done => {
-    /*
-       TODO send and receive from a webSocket ws://localhost:8010
-       TODO 9a create a webSocket subject connected to ws://localhost:8010
-       TODO 9b send 'foo'
-       TODO 9c send 'bar'
-       TODO 9d receive all (2) messages from ws, add to arrReceived
-       TODO 9e after receiving 2 messages, close connection to WS
-       TODO 9f after WS closes, call checkArrReceived
-     */
-    const url = 'ws://localhost:8010'; // local WS echo service
-    const arrReceived = []; // messages received from ws
-    const wsSubject = null; // TODO replace
-    expect(wsSubject).toBeA(Subject, 'expected wsSubject to be a webSocket subject');
-    function checkArrReceived() {
-      expect(arrReceived).toEqual(['foo', 'bar']);
-      done();
-    }
+  it('filter values to only those > 20 and multiply each by 10', done => {
+    // TODO 6
+    /* apply filter and map to ob1a */
+    const ob1a$ = of(10, 20, 30, 40);
+
+    const expected = [300, 400];
+    const found = [];
+    ob1a$.subscribe({
+      next: x => found.push(x),
+      error: err => done(err),
+      complete: () => {
+        expect(found).toEqual(expected);
+        done();
+      }
+    });
   });
 
-  it('send and receive from reconnecting webSocket', done => {
-    /*
-       TODO send and receive from an auto-reconnecting webSocket
-       TODO track the opens and closes via a wsConnected$ subject
-       TODO 10a create an openObserver subject
-       TODO 10b create a closeObserver subject
-       TODO 10c merge openObserver and closeObserver into wsConnected$ which emits true if connected, false if disconnected
-       TODO 10a create a webSocket subject connected to ws://localhost:8010 using the openObserver and closeObserver to track connection
-       TODO 10b create a reconnecting WS observable that reconnects after 1s delay on failure
-       TODO 10c create a new subject rwsSubject which combines the write side of your webSocket subject and the read side of the reconnecting WS observable
-       TODO 10d listen to wsConnected$ and when it emits a false indicating the connection closed, call checkArrReceived
-       TODO 10e send 'foo' using rwsSubject
-       TODO 10f send 'bar' using rwsSubject
-       TODO 10g receive all (2) messages from rwsSubject, add to arrReceived
-       TODO 10h after receiving 2 messages, close connection to WS
-     */
-    const url = 'ws://localhost:8010'; // local WS echo service
-    const arrReceived = []; // messages received from ws
-    const openObserver = null; // TODO replace
-    const closeObserver = null; // TODO replace
-    const wsConnected$ = null; // TODO replace
-    const wsSubject = null; // TODO replace
-    const reconWebSocket$ = null; // TODO replace
-    const rwsSubject = null; // TODO replace
-    expect(rwsSubject).toBeA(Subject, 'expected rwsSubject to be a webSocket subject');
-    expect(wsConnected$).toBeAn(Observable, 'expected wsConnected$ to be an Observable');
-    function checkArrReceived() {
-      expect(arrReceived).toEqual(['foo', 'bar']);
-      done();
-    }
+
+  it('find the sum of all values < 40', done => {
+    // TODO 7
+    /* apply filter and map to ob1a */
+    const ob1a$ = of(10, 20, 30, 40);
+
+    const expected = [60];
+    const found = [];
+    ob1a$.subscribe({
+      next: x => found.push(x),
+      error: err => done(err),
+      complete: () => {
+        expect(found).toEqual(expected);
+        done();
+      }
+    });
   });
+
+  it('iterate over all values in an array using observable', done => {
+    // TODO 8
+    const arr = [10, 20, 30, 40];
+    /* apply filter and map to ob1a */
+    const ob1a$ = null; // create observable from array
+
+    const expected = [10, 20, 30, 40];
+    const found = [];
+    ob1a$.subscribe({
+      next: x => found.push(x),
+      error: err => done(err),
+      complete: () => {
+        expect(found).toEqual(expected);
+        done();
+      }
+    });
+  });
+
+  it('send array as the only value in an observable', done => {
+    // TODO 9
+    const arr = [10, 20, 30, 40];
+    /* apply filter and map to ob1a */
+    const ob1a$ = null; // make observable that emits arr as only value
+
+    const expected = [[10, 20, 30, 40]];
+    const found = [];
+    ob1a$.subscribe({
+      next: x => found.push(x),
+      error: err => done(err),
+      complete: () => {
+        expect(found).toEqual(expected);
+        done();
+      }
+    });
+  });
+
+
+
 
 
 

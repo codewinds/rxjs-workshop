@@ -18,6 +18,7 @@
     "install:rxviz": "cd rxviz && npm install",
     "install:angular": "cd examples/angular/exercise && npm install",
     "install:vue": "cd examples/vue/exercise && npm install",
+    "install:react": "cd examples/react/exercise && npm install",
     "author-watch": "./util/gen-ex.bash && run-p watch master-watch",
     "clean": "mkdirp dist && rimraf dist/*",
     "build": "cross-env BABEL_ENV=commonjs WEBPACK_MODE=single webpack",
